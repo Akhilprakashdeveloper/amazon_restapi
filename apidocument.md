@@ -42,16 +42,18 @@ http://localhost:5500/product?category=1&brand=apple
 //page 3
 
 >detail of product   
- http://localhost:5500/productdetail/5         
+ http://localhost:5500/productdetail/5   
+
+
 
 //page 4
 
 >checkout details(POST) 
 http://localhost:5500/checkout
-           
 
 >place order(POST)       
  http://localhost:5500/placeorder     
+
 
 //page 5
 
@@ -66,4 +68,9 @@ http://localhost:5500/checkout
 
 >delete order(Delete)
  http://localhost:5500/deleteorder/637d7417e39ec1a908180472
+
+
+ LIVE API URL FOR AMAZON PROJECT:
+
+ https://amazonapi.onrender.com
 
