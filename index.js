@@ -14,6 +14,14 @@ app.use(bodyparser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 
 
+app.get('/',(req,res)=>{
+    db.collection('amazondata').find().toArray((err,result)=>{
+        if(err) throw err
+        res.send(result)
+    })
+})
+
+
 //page1
 
 app.get('/category',(req,res)=>{
