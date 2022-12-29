@@ -1,5 +1,6 @@
 let express = require('express');
 let app = express();
+let cors=require('cors');
 let dotenv = require('dotenv');
 dotenv.config()
 let port = process.env.PORT || 7800;
@@ -12,6 +13,7 @@ let bodyparser=require('body-parser');
 const bodyParser = require('body-parser');
 app.use(bodyparser.urlencoded({extended:true}))
 app.use(bodyParser.json())
+app.use(cors());
 
 
 app.get('/',(req,res)=>{
