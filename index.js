@@ -102,7 +102,7 @@ app.get('/product',(req,res)=>{
     })
 })
 
-app.get('/productData/:productId',(req,res)=>{
+app.get('/productdata/:productId',(req,res)=>{
     let productId=Number(req.params.productId);
     db.collection('amazondata').find({id:productId}).toArray((err,result)=>{
         if(err) throw err
