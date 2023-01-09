@@ -7,7 +7,7 @@ let port = process.env.PORT || 7800;
 let mongo=require('mongodb');
 const { response } = require('express');
 let MongoClient = mongo.MongoClient;
-let mongoUrl=process.env.LiveMongo;
+let mongoUrl=process.env.LocalMongo;
 let db;
 let bodyparser=require('body-parser');
 const bodyParser = require('body-parser');
@@ -43,6 +43,18 @@ app.get('/products',(req,res)=>{
         res.send(result)
     })
 })
+
+
+app.get('/products/:productId',(req,res)=>{
+    let productId=Number(req.params.productId);
+    db.collection('amazondata').find({id:productId}).toArray((err,result)=>{
+        if(err) throw err
+        res.send(result);
+    })
+})
+
+
+
 
 
 app.get('/products/:categoryId',(req,res)=>{
