@@ -44,19 +44,6 @@ app.get('/products',(req,res)=>{
     })
 })
 
-
-app.get('/products/:productId',(req,res)=>{
-    let productId=Number(req.params.productId);
-    db.collection('amazondata').find({id:productId}).toArray((err,result)=>{
-        if(err) throw err
-        res.send(result);
-    })
-})
-
-
-
-
-
 app.get('/products/:categoryId',(req,res)=>{
     let categoryId=Number(req.params.categoryId);
     db.collection('amazondata').find({category_id:categoryId}).toArray((err,result)=>{
@@ -114,6 +101,15 @@ app.get('/product',(req,res)=>{
         res.send(result);
     })
 })
+
+app.get('/productData/:productId',(req,res)=>{
+    let productId=Number(req.params.productId);
+    db.collection('amazondata').find({id:productId}).toArray((err,result)=>{
+        if(err) throw err
+        res.send(result);
+    })
+})
+
 
 
 app.get('/filter/:categoryId',(req,res)=>{
