@@ -4,33 +4,46 @@ let cors=require('cors');
 let dotenv = require('dotenv');
 dotenv.config()
 let port = process.env.PORT || 7800;
-let mongo=require('mongodb');
-const { response } = require('express');
-let MongoClient = mongo.MongoClient;
 let mongoUrl=process.env.LiveMongo;
-let db;
-let bodyparser=require('body-parser');
+const category=require('./models/categorymodel');
+const amazondata=require('./models/amazondatamodal');
+const users=require('./models/userModal');
 const bodyParser = require('body-parser');
-app.use(bodyparser.urlencoded({extended:true}))
+app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 app.use(cors());
+const mongoose=require('mongoose');
+const { response } = require('express');
+mongoose.set('strictQuery', true);
+const jwt=require('jsonwebtoken');
+const bcrypt=require('bcryptjs');
 
 
-app.get('/',(req,res)=>{
-    db.collection('amazondata').find().toArray((err,result)=>{
-        if(err) throw err
-        res.send(result)
+mongoose.connect(mongoUrl).then((result)=>{
+    app.listen(port,()=>{
+        console.log(`Server is running on port ${port}`)
     })
+}).catch((err)=>{
+    console.log('there is an error',err)
 })
+
 
 
 //page1
 
-app.get('/category',(req,res)=>{
-    db.collection('category').find().toArray((err,result)=>{
+app.get('/',(req,res)=>{
+    amazondata.find((err,result)=>{
         if(err) throw err
         res.send(result);
-    })
+      })
+})
+
+
+app.get('/category',(req,res)=>{
+    category.find((err,result)=>{
+        if(err) throw err
+        res.send(result);
+      })
 })
 
 
@@ -38,31 +51,32 @@ app.get('/category',(req,res)=>{
 //page2
 
 app.get('/products',(req,res)=>{
-    db.collection('amazondata').find().toArray((err,result)=>{
-        if(err) throw err
-        res.send(result)
-    })
-})
-
-app.get('/products/:categoryId',(req,res)=>{
-    let categoryId=Number(req.params.categoryId);
-    db.collection('amazondata').find({category_id:categoryId}).toArray((err,result)=>{
+    amazondata.find((err,result)=>{
         if(err) throw err
         res.send(result);
-    })
+      })
 })
 
+
+app.get('/products/:categoryId', (req, res) => {
+    let categoryId = Number(req.params.categoryId);
+    amazondata.find({category_id:categoryId}, (err, result) => {
+        if(err) throw err
+        res.send(result);
+    });
+});
 
 
 app.get('/product',(req,res)=>{
-   let category=Number(req.query.category);
+   let category=req.query.category;
    let brand=req.query.brand;
-   let ram=Number(req.query.ram);
-   let storage=Number(req.query.storage);
+   let ram=req.query.ram;
+   let storage=req.query.storage;
    let processor=req.query.processor;
    let colour=req.query.colour;
    let type=req.query.type;
    let author=req.query.author;
+   let book_name=req.query.bookname;
    let query={}
    if(category&&brand)
    {
@@ -92,11 +106,15 @@ app.get('/product',(req,res)=>{
    {
     query={category_id:category,author}
    }
+   else if(category&&book_name)
+   {
+    query={category_id:category,book_name}
+   }
    else{
     query={};
    }
 
-    db.collection('amazondata').find(query).toArray((err,result) => {
+    amazondata.find(query,(err,result) => {
         if(err) throw err;
         res.send(result);
     })
@@ -105,7 +123,7 @@ app.get('/product',(req,res)=>{
 
 
 app.get('/filter/:categoryId',(req,res)=>{
-    let categoryId=Number(req.params.categoryId)
+    let categoryId=req.params.categoryId;
     let hcost=Number(req.query.hcost);
     let lcost=Number(req.query.lcost);
     let sort={price:1};
@@ -122,7 +140,7 @@ app.get('/filter/:categoryId',(req,res)=>{
     else{
         query={};
     }
-    db.collection('amazondata').find(query).sort(sort).toArray((err,result)=>{
+    amazondata.find(query,{}).sort(sort).exec((err,result)=>{
         if(err) throw err
         res.send(result)
     })
@@ -134,7 +152,7 @@ app.get('/filter/:categoryId',(req,res)=>{
 
 app.get('/productdetail/:productId',(req,res)=>{
     let productId=Number(req.params.productId);
-    db.collection('amazondata').find({id:productId}).toArray((err,result)=>{
+    amazondata.find({id:productId},(err,result)=>{
         if(err) throw err
         res.send(result);
     })
@@ -142,6 +160,58 @@ app.get('/productdetail/:productId',(req,res)=>{
 
 
 
+
+app.post('/register',(req,res) => {
+    users.find({email:req.body.email},(err,data) => {
+        if(err) throw err;
+        if(data.length>0){
+            res.send('Email already Taken')
+        }else{
+             
+                let hashpassword = bcrypt.hashSync(req.body.password,8);
+                users.create({
+                    name:req.body.name,
+                    email:req.body.email,
+                    password:hashpassword,
+                    phone:req.body.phone,
+                    role:req.body.role?req.body.role:'User'
+    
+                },(err,data) => {
+                    if(err) return res.send('Error While Register');
+                    res.send('Registion Successful')
+                })
+        }
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 //page 4
 
 app.post('/checkoutupdate',(req,res)=>{
@@ -215,25 +285,4 @@ app.delete('/deleteorder/:id',(req,res)=>{
         res.send('order deleted succefully');
     })
 })
-
-
-
-
-
-
-//Database connection
-
-
-
-MongoClient.connect(mongoUrl,(err,client) => {
-    if(err) console.log('Error while connecting');
-    db = client.db('amazon');
-    app.listen(port,()=>{
-        console.log(`Server is running on port ${port}`)
-    })
-
-})
-
-
-
-
+*/

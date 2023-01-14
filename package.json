@@ -19,12 +19,14 @@
   },
   "homepage": "https://github.com/Akhilprakashdeveloper/amazonproject#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
     "mongodb": "^4.12.0",
-    "mongoose": "^6.7.3",
+    "mongoose": "^6.8.3",
     "morgan": "^1.10.0"
   }
 }
