@@ -3,11 +3,13 @@ let app = express();
 let cors=require('cors');
 let dotenv = require('dotenv');
 dotenv.config()
+const config=require('./config');
 let port = process.env.PORT || 7800;
 let mongoUrl=process.env.LiveMongo;
 const category=require('./models/categorymodel');
 const amazondata=require('./models/amazondatamodal');
 const users=require('./models/userModal');
+const orders=require('./models/ordermodel');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
@@ -185,21 +187,76 @@ app.post('/register',(req,res) => {
 })
 
 
+app.post('/login',(req,res) => {
+    users.findOne({email:req.body.email},(err,user) => {
+        if(err) return res.send({auth:false,token:'Error while Logging'});
+        if(!user) return res.send({auth:false,token:'No User Found'});
+        else{
+            const passIsValid = bcrypt.compareSync(req.body.password,user.password)
+            if(!passIsValid) return res.send({auth:false,token:'Invalid Password'})
+          
+            let token = jwt.sign({id:user._id},config.secret,{expiresIn:86400})
+            res.send({auth:true,token:token})
+        }
+    })
+})
+
+
+app.get('/userInfo',(req,res) => {
+    let token = req.headers['x-access-token'];
+    if(!token) res.send({auth:false,token:'No Token Provided'});
+   
+    jwt.verify(token,config.secret,(err,user) => {
+        if(err) return res.send({auth:false,token:'Invalid Token'});
+        users.findById(user.id,(err,result) => {
+            res.send(result)
+        })
+    })
+})
 
 
 
 
+app.post('/orders',(req,res) => {
+        
+                orders.create({
+                    id:req.body.id,
+                    product_name:req.body.product_name,
+                    cost:req.body.cost,
+                    name:req.body.name,
+                    email:req.body.email,
+                    phone:req.body.phone,
+                    address:req.body.address
+                },(err,data) => {
+                    if(err) return res.send('Error on order adding');
+                    res.send('oder successfull')
+                })
+        })
 
 
 
+        app.get('/orders/:email',(req,res)=>{
+            let email=req.params.email;
+            orders.find({email:email},(err,result)=>{
+                if(err) throw err
+                res.send(result);
+            })
+        })
+        
 
+app.put('/orders/:id', (req, res) => {
+    const id = req.params.id;
+    const filter = { id: id }
+    const update = { $set: req.body }
 
-
-
-
-
-
-
+    orders.findOneAndUpdate(filter, update, { new: true })
+        .then(orders => {
+            res.status(200).json(orders);
+        })
+        .catch(error => {
+            res.status(500).json({ message: 'Updating order in database failed.' });
+        });
+});
 
 
 
